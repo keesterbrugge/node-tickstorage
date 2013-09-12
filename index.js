@@ -1,8 +1,8 @@
 var
-    Reader = require('./lib/Reader'),
-    Writer = require('./lib/Writer');
+	Reader = require('./lib/Reader'),
+	Writer = require('./lib/Writer');
 
 module.exports = {
-    Reader: Reader,
-    Writer: Writer
+	Reader: Reader,
+	Writer: Writer
 };

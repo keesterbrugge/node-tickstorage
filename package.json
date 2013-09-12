@@ -1,31 +1,31 @@
 {
-  "name": "tickstorage",
-  "version": "0.0.1",
-  "description": "An extremely fast and efficient Node.js storage engine for raw stock market tick data.",
-  "main": "index.js",
-  "directories": {
-    "test": "test"
-  },
-  "scripts": {
-    "test": "./node_modules/.bin/mocha $(find test -name \"*.test.js\")"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/egorfine/node-tickstorage"
-  },
-  "keywords": [
-    "stock",
-    "market",
-    "ticks"
-  ],
-  "author": "Daniil Bratchenko",
-  "license": "MIT",
-  "readmeFilename": "README.md",
-  "devDependencies": {
-    "chai": "~1.7.2",
-    "mocha": "~1.12.0"
-  },
-  "dependencies": {
-    "mkdirp": "~0.3.5"
-  }
+	"name": "tickstorage",
+	"version": "0.0.1",
+	"description": "An extremely fast and efficient Node.js storage engine for raw stock market tick data.",
+	"main": "index.js",
+	"directories": {
+		"test": "test"
+	},
+	"scripts": {
+		"test": "./node_modules/.bin/mocha $(find test -name \"*.test.js\")"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git://github.com/egorfine/node-tickstorage"
+	},
+	"keywords": [
+		"stock",
+		"market",
+		"ticks"
+	],
+	"author": "Daniil Bratchenko",
+	"license": "MIT",
+	"readmeFilename": "README.md",
+	"devDependencies": {
+		"chai": "~1.7.2",
+		"mocha": "~1.12.0"
+	},
+	"dependencies": {
+		"mkdirp": "~0.3.5"
+	}
 }
