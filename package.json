@@ -21,7 +21,6 @@
   "author": "Daniil Bratchenko",
   "license": "MIT",
   "readmeFilename": "README.md",
-  "gitHead": "3a1d22c915a2387422c05c8e3c055a2aa28a58a3",
   "devDependencies": {
     "chai": "~1.7.2",
     "mocha": "~1.12.0"
