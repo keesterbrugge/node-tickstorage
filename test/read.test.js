@@ -70,7 +70,8 @@ describe("TickStorage/Reader", function() {
 		reader.load();
 
 		assert.deepEqual(reader.nextTick(), {
-			"unixtime": 1294134747000,
+			"unixtime": 1294134747,
+			"msec": 0,
 			"volume": 100,
 			"price": 465000,
 			"bid": 8210,
@@ -81,7 +82,8 @@ describe("TickStorage/Reader", function() {
 		});
 
 		assert.deepEqual(reader.nextTick(), {
-			"unixtime": 1294143456000,
+			"unixtime": 1294143456,
+			"msec": 0,
 			"volume": 100,
 			"price": 458300,
 			"bid": 1119,
@@ -92,7 +94,8 @@ describe("TickStorage/Reader", function() {
 		});
 
 		assert.deepEqual(reader.nextTick(), {
-			"unixtime": 1294143481000,
+			"unixtime": 1294143481,
+			"msec": 0,
 			"volume": 100,
 			"price": 458300,
 			"bid": 5046,
