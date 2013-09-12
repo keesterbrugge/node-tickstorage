@@ -11,7 +11,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "git://github.com/egorfine/node-tickstorage"
+		"url": "git://github.com/egorFiNE/node-tickstorage.git"
 	},
 	"keywords": [
 		"stock",
