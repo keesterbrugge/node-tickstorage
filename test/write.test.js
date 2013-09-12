@@ -6,8 +6,8 @@ var
 	Reader = TickStorage.Reader,
 	Writer = TickStorage.Writer;
 
-function unixtime() {
-	return parseInt(Date.now()/1000, 10);
+function unixtimeMsec() {
+	return parseInt(Date.now()/1000, 10) * 1000;
 }
 
 describe("TickStorage/Read old storage", function() {
@@ -46,8 +46,7 @@ describe("TickStorage/Read old storage", function() {
 		var writer = new Writer(path);
 		var ticks = [
 			{
-				unixtime: unixtime(),
-				msec: 123,
+				unixtime: unixtimeMsec() + 123,
 				volume: 100,
 				price: 14134,
 				bid: 14145,
@@ -57,8 +56,7 @@ describe("TickStorage/Read old storage", function() {
 				isMarket: true
 			},
 			{
-				unixtime: unixtime(),
-				msec: 234,
+				unixtime: unixtimeMsec() + 234,
 				volume: 100,
 				price: 14134,
 				bid: 123,
@@ -68,8 +66,7 @@ describe("TickStorage/Read old storage", function() {
 				isMarket: false,
 			},
 			{
-				unixtime: unixtime(),
-				msec: 345,
+				unixtime: unixtimeMsec() + 345,
 				volume: 99,
 				price: 1,
 				bid: 123,
@@ -98,8 +95,7 @@ describe("TickStorage/Read old storage", function() {
 		var ticksCount = 1000000;
 
 		var tick = {
-			unixtime: unixtime(),
-			msec: 556,
+			unixtime: unixtimeMsec() + 556,
 			price: 100,
 			volume: 100
 		}
@@ -125,7 +121,6 @@ describe("TickStorage/Read old storage", function() {
 		var writer = new Writer(path);
 		writer.addTick({
 				unixtime: 0,
-				msec: 0,
 				volume: "100",
 				price: "150.2",
 				bid: "bid",
@@ -140,7 +135,6 @@ describe("TickStorage/Read old storage", function() {
 				var tick = readTicks[0];
 				assert.deepEqual(tick, {
 					unixtime: 0,
-					msec: 0,
 					volume: 100,
 					price: 150,
 					bid: 0,

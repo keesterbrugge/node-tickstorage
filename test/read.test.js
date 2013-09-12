@@ -78,8 +78,7 @@ describe("TickStorage/Reader", function() {
 			assert.ok(!err);
 
 			assert.deepEqual(reader.nextTick(), {
-				"unixtime": 1294134747,
-				"msec": 0,
+				"unixtime": 1294134747000,
 				"volume": 100,
 				"price": 465000,
 				"bid": 101,
@@ -90,8 +89,7 @@ describe("TickStorage/Reader", function() {
 			});
 
 			assert.deepEqual(reader.nextTick(), {
-				"unixtime": 1294143456,
-				"msec": 0,
+				"unixtime": 1294143456000,
 				"volume": 100,
 				"price": 458300,
 				"bid": 101,
@@ -102,8 +100,7 @@ describe("TickStorage/Reader", function() {
 			});
 
 			assert.deepEqual(reader.nextTick(), {
-				"unixtime": 1294143481,
-				"msec": 0,
+				"unixtime": 1294143481000,
 				"volume": 100,
 				"price": 458300,
 				"bid": 94,
@@ -124,8 +121,7 @@ describe("TickStorage/Reader", function() {
 			assert.ok(!err);
 
 			var tickAtZero = {
-				"unixtime": 1294134747,
-				"msec": 0,
+				"unixtime": 1294134747000,
 				"volume": 100,
 				"price": 465000,
 				"bid": 101,
@@ -136,8 +132,7 @@ describe("TickStorage/Reader", function() {
 			};
 
 			assert.deepEqual(reader.tickAtPosition(2), {
-				"unixtime": 1294143481,
-				"msec": 0,
+				"unixtime": 1294143481000,
 				"volume": 100,
 				"price": 458300,
 				"bid": 94,
@@ -150,8 +145,7 @@ describe("TickStorage/Reader", function() {
 			assert.deepEqual(reader.tickAtPosition(0), tickAtZero);
 
 			assert.deepEqual(reader.tickAtPosition(1), {
-				"unixtime": 1294143456,
-				"msec": 0,
+				"unixtime": 1294143456000,
 				"volume": 100,
 				"price": 458300,
 				"bid": 101,
