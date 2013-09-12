@@ -12,25 +12,36 @@ function unixtime() {
 
 describe("TickStorage/Read old storage", function() {
 
-	it("should create directories and file", function() {
+	it("should create directories and file", function(done) {
 		var path = __dirname + "/data/tmp/somedir/createThis.ticks";
+		try { 
+			fs.unlinkSync(path);
+		} catch(e) {
+		}
+
 		var writer = new Writer(path);
-		writer.save();
-		assert.ok( fs.existsSync(path));
+		writer.save(function(err) {
+			assert.ok(!err);
+			assert.ok(fs.existsSync(path));
+			done();
+		});
 	});
 
-	it("should overwrite existant file", function() {
+	it("should overwrite existing file", function(done) {
 		var path = __dirname + '/data/tmp/rewrite.ticks';
 		fs.writeFileSync(path, "test content");
 		assert.equal(fs.readFileSync(path, "utf8"), "test content");
 
 		var writer = new Writer(path);
-		writer.save();
-		assert.ok( fs.existsSync(path) );
-		assert.notEqual(fs.readFileSync(path, "utf8"), "test content");
+		writer.save(function(err) {
+			assert.ok(!err);
+			assert.ok(fs.existsSync(path));
+			assert.notEqual(fs.readFileSync(path, "utf8"), "test content");
+			done();
+		});
 	});
 
-	it("should read what it wrote", function() {
+	it("should read what it wrote", function(done) {
 		var path = __dirname + '/data/tmp/readWhatItWrote.ticks';
 		var writer = new Writer(path);
 		var ticks = [
@@ -71,12 +82,17 @@ describe("TickStorage/Read old storage", function() {
 		ticks.forEach(function(tick) {
 			writer.addTick(tick);
 		});
-		writer.save();
-		var readTicks = readAllTicks(path);
-		assert.deepEqual(ticks, readTicks);
+		writer.save(function(err) {
+			assert.ok(!err);
+			readAllTicks(path, function(err, readTicks) {
+				assert.ok(!err);
+				assert.deepEqual(ticks, readTicks);
+				done();
+			});
+		});
 	});
 
-	it("should support large datasets", function() {
+	it("should support large datasets", function(done) {
 		var path = __dirname + '/data/tmp/largeDataSet.ticks';
 		var writer = new Writer(path);
 		var ticksCount = 1000000;
@@ -87,20 +103,24 @@ describe("TickStorage/Read old storage", function() {
 			price: 100,
 			volume: 100
 		}
+
 		for(var i = 0; i < ticksCount; ++i) {
 			writer.addTick(tick);
 		}
 
-		writer.save();
-
-		var reader = new Reader(path);
-		reader.load();
-		assert.equal(reader.length, ticksCount);
-
-		fs.unlinkSync(path);
+		writer.save(function(err) {
+			assert.ok(!err);
+			var reader = new Reader(path);
+			reader.load(function(err) {
+				assert.ok(!err);
+				assert.equal(reader.length, ticksCount);
+				fs.unlinkSync(path);
+				done();
+			});
+		});
 	});
 
-	it("should handle non-int values tick values", function() {
+	it("should handle non-int values tick values", function(done) {
 		var path = __dirname + '/data/tmp/acceptInvalidValues.ticks';
 		var writer = new Writer(path);
 		writer.addTick({
@@ -112,31 +132,37 @@ describe("TickStorage/Read old storage", function() {
 				ask: "ask",
 				bidSize: "0"
 		});
-		writer.save();
-		var readTicks = readAllTicks(path);
-		var tick = readTicks[0];
-		assert.deepEqual(tick, {
-			unixtime: 0,
-			msec: 0,
-			volume: 100,
-			price: 150,
-			bid: 0,
-			ask: 0,
-			bidSize: 0,
-			askSize: 0,
-			isMarket: false
+
+		writer.save(function(err) {
+			assert.ok(!err);
+			readAllTicks(path, function(err, readTicks) {
+				assert.ok(!err);
+				var tick = readTicks[0];
+				assert.deepEqual(tick, {
+					unixtime: 0,
+					msec: 0,
+					volume: 100,
+					price: 150,
+					bid: 0,
+					ask: 0,
+					bidSize: 0,
+					askSize: 0,
+					isMarket: false
+				});
+				done();
+			});
 		});
 	});
 
-	function readAllTicks(path) {
+	function readAllTicks(path, callback) {
 		var reader = new Reader(path);
-		reader.load();
-		var ticks = [];
-		var tick;
-		while (tick = reader.nextTick()) {
-			ticks.push(tick);
-		}
-		return ticks;
+		reader.load(function(err) {
+			var ticks = [];
+			var tick;
+			while (tick = reader.nextTick()) {
+				ticks.push(tick);
+			}
+			callback(err, ticks);
+		});
 	}
-
 });
