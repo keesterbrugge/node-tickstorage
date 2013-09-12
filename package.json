@@ -26,6 +26,7 @@
 		"mocha": "~1.12.0"
 	},
 	"dependencies": {
-		"mkdirp": "~0.3.5"
+		"mkdirp": "~0.3.5",
+		"compress-buffer": ">= 0.5.1"
 	}
 }
