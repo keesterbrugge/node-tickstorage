@@ -10,11 +10,11 @@ function unixtimeMsec() {
 	return parseInt(Date.now()/1000, 10) * 1000;
 }
 
-describe("TickStorage/Read old storage", function() {
+describe("TickStorage/Writer", function() {
 
 	it("should create directories and file", function(done) {
 		var path = __dirname + "/data/tmp/somedir/createThis.ticks";
-		try { 
+		try {
 			fs.unlinkSync(path);
 		} catch(e) {
 		}
@@ -34,7 +34,7 @@ describe("TickStorage/Read old storage", function() {
 
 		var writer = new Writer(path);
 		writer.save(function(err) {
-			assert.ok(!err);
+			assert.ok(!err, err);
 			assert.ok(fs.existsSync(path));
 			assert.notEqual(fs.readFileSync(path, "utf8"), "test content");
 			done();
@@ -90,6 +90,7 @@ describe("TickStorage/Read old storage", function() {
 	});
 
 	it("should support large datasets", function(done) {
+		this.timeout(5000); // Tried it on a really slow machine
 		var path = __dirname + '/data/tmp/largeDataSet.ticks';
 		var writer = new Writer(path);
 		var ticksCount = 1000000;
@@ -98,7 +99,7 @@ describe("TickStorage/Read old storage", function() {
 			unixtime: unixtimeMsec() + 556,
 			price: 100,
 			volume: 100
-		}
+		};
 
 		for(var i = 0; i < ticksCount; ++i) {
 			writer.addTick(tick);
