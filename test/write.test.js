@@ -21,7 +21,7 @@ describe("TickStorage/Writer", function() {
 
 		var writer = new Writer(path);
 		writer.save(function(err) {
-			assert.ok(!err);
+			assert.ok(!err, err);
 			assert.ok(fs.existsSync(path));
 			done();
 		});
@@ -80,9 +80,9 @@ describe("TickStorage/Writer", function() {
 			writer.addTick(tick);
 		});
 		writer.save(function(err) {
-			assert.ok(!err);
+			assert.ok(!err, err);
 			readAllTicks(path, function(err, readTicks) {
-				assert.ok(!err);
+				assert.ok(!err, err);
 				assert.deepEqual(ticks, readTicks);
 				done();
 			});
@@ -106,10 +106,10 @@ describe("TickStorage/Writer", function() {
 		}
 
 		writer.save(function(err) {
-			assert.ok(!err);
+			assert.ok(!err, err);
 			var reader = new Reader(path);
 			reader.load(function(err) {
-				assert.ok(!err);
+				assert.ok(!err, err);
 				assert.equal(reader.length, ticksCount);
 				fs.unlinkSync(path);
 				done();
@@ -130,9 +130,9 @@ describe("TickStorage/Writer", function() {
 		});
 
 		writer.save(function(err) {
-			assert.ok(!err);
+			assert.ok(!err, err);
 			readAllTicks(path, function(err, readTicks) {
-				assert.ok(!err);
+				assert.ok(!err, err);
 				var tick = readTicks[0];
 				assert.deepEqual(tick, {
 					unixtime: 0,

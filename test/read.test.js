@@ -7,7 +7,7 @@ describe("TickStorage/Reader", function() {
 	it("should read storage version 1 correctly", function(done) {
 		var reader = new Reader(__dirname + '/data/ticks-v1/LVS/20110104.ticks');
 		reader.load(function(err) {
-			assert.ok(!err);
+			assert.ok(!err, err);
 
 			var tick;
 			var ticksAmount = 0,
@@ -35,7 +35,7 @@ describe("TickStorage/Reader", function() {
 		var path = __dirname + '/data/ticks/LVS/20110104.ticks';
 		var reader = new Reader(path);
 		reader.load(function(err) {
-			assert.ok(!err);
+			assert.ok(!err, err);
 
 			var tick;
 			var ticksAmount = 0,
@@ -75,7 +75,7 @@ describe("TickStorage/Reader", function() {
 		var path = __dirname + '/data/ticks/LVS/20110104.ticks';
 		var reader = new Reader(path);
 		reader.load(function(err) {
-			assert.ok(!err);
+			assert.ok(!err, err);
 
 			assert.deepEqual(reader.nextTick(), {
 				"unixtime": 1294134747000,
@@ -118,7 +118,7 @@ describe("TickStorage/Reader", function() {
 		var path = __dirname + '/data/ticks/LVS/20110104.ticks';
 		var reader = new Reader(path);
 		reader.load(function(err) {
-			assert.ok(!err);
+			assert.ok(!err, err);
 
 			var tickAtZero = {
 				"unixtime": 1294134747000,
