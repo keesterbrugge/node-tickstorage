@@ -1,0 +1,68 @@
+<!DOCTYPE html><html lang="en"><head><title>test</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content=""><meta name="groc-document-path" content="test"><meta name="groc-project-path" content="test.js"><meta name="groc-github-url" content="https://github.com/egorFiNE/node-tickstorage"><link rel="stylesheet" type="text/css" media="all" href="assets/style.css"><script type="text/javascript" src="assets/behavior.js"></script><body><div id="meta"><div class="file-path"><a href="https://github.com/egorFiNE/node-tickstorage/blob/master/test.js">test.js</a></div></div><div id="document"><div class="segment"><div class="code"><div class="wrapper"><span class="nx">require</span><span class="p">(</span><span class="s1">&#39;../../_bootstrap&#39;</span><span class="p">);</span>
+
+<span class="kd">var</span>
+    <span class="nx">GA</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;./lib/RobotBrilliant/lib/GA&#39;</span><span class="p">),</span>
+    <span class="nx">TickReader</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s2">&quot;tickstorage&quot;</span><span class="p">).</span><span class="nx">Reader</span><span class="p">,</span>
+    <span class="nx">FastSignalFinder</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s2">&quot;./lib/RobotBrilliant/lib/FastSignalFinder&quot;</span><span class="p">),</span>
+    <span class="nx">dateUtils</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;../dateUtils&#39;</span><span class="p">),</span>
+    <span class="nx">async</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;async&#39;</span><span class="p">);</span>
+
+<span class="kd">var</span> <span class="nx">params</span> <span class="o">=</span> <span class="p">{</span> <span class="nx">tickDbPath</span><span class="o">:</span> <span class="s1">&#39;/Users/daeq/workspace/brilliants/config/../ticks&#39;</span><span class="p">,</span>
+  <span class="nx">symbol</span><span class="o">:</span> <span class="s1">&#39;CAT&#39;</span><span class="p">,</span>
+  <span class="nx">timezone</span><span class="o">:</span> <span class="s1">&#39;America/New_York&#39;</span><span class="p">,</span>
+  <span class="nx">startDatestamp</span><span class="o">:</span> <span class="s1">&#39;20130901&#39;</span><span class="p">,</span>
+  <span class="nx">endDatestamp</span><span class="o">:</span> <span class="s1">&#39;20130915&#39;</span><span class="p">,</span>
+  <span class="nx">avgRange</span><span class="o">:</span> <span class="mi">12119</span><span class="p">,</span>
+  <span class="nx">avgVolume</span><span class="o">:</span> <span class="mi">5107880</span><span class="p">,</span>
+  <span class="nx">isShortable</span><span class="o">:</span> <span class="kc">true</span><span class="p">,</span>
+  <span class="nx">startTradingAtTime</span><span class="o">:</span> <span class="s1">&#39;09:40:00&#39;</span><span class="p">,</span>
+  <span class="nx">stopTradingAtTime</span><span class="o">:</span> <span class="s1">&#39;15:00:00&#39;</span><span class="p">,</span>
+  <span class="nx">mocAtTime</span><span class="o">:</span> <span class="s1">&#39;15:53:00&#39;</span><span class="p">,</span>
+  <span class="nx">percentRangeLow</span><span class="o">:</span> <span class="mf">23.144423235207796</span><span class="p">,</span>
+  <span class="nx">percentRangeHigh</span><span class="o">:</span> <span class="mf">82.6873678428121</span><span class="p">,</span>
+  <span class="nx">volumeTreshold</span><span class="o">:</span> <span class="mf">0.009074424518039453</span><span class="p">,</span>
+  <span class="nx">minDayRangeMultiplier</span><span class="o">:</span> <span class="mf">2.2639113098382952</span><span class="p">,</span>
+  <span class="nx">stopLoss</span><span class="o">:</span> <span class="mi">1706</span><span class="p">,</span>
+  <span class="nx">takeProfit</span><span class="o">:</span> <span class="mi">9070</span><span class="p">,</span>
+  <span class="nx">maxSignalPriceRangeMultiplier</span><span class="o">:</span> <span class="mf">0.06837488169316203</span><span class="p">,</span>
+  <span class="nx">windowCloseSeconds</span><span class="o">:</span> <span class="mi">40</span><span class="p">,</span>
+  <span class="nx">tickSize</span><span class="o">:</span> <span class="mi">561</span><span class="p">,</span>
+  <span class="nx">startTradingAtUnixtime</span><span class="o">:</span> <span class="mi">1379079600</span><span class="p">,</span>
+  <span class="nx">stopTradingAtUnixtime</span><span class="o">:</span> <span class="mi">1379098800</span><span class="p">,</span>
+  <span class="nx">mocAtUnixtime</span><span class="o">:</span> <span class="mi">1379101980</span> <span class="p">};</span>
+
+<span class="kd">var</span> <span class="nx">fastSignalFinder</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">FastSignalFinder</span><span class="p">(</span><span class="nx">params</span><span class="p">);</span>
+
+<span class="nx">getTicksForDatestamp</span><span class="p">(</span><span class="nx">params</span><span class="p">,</span> <span class="s1">&#39;20130910&#39;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">ticks</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">performance</span> <span class="o">=</span> <span class="nx">fastSignalFinder</span><span class="p">.</span><span class="nx">processDay</span><span class="p">(</span><span class="nx">ticks</span><span class="p">.</span><span class="nx">buffer</span><span class="p">,</span> <span class="nx">ticks</span><span class="p">.</span><span class="nx">count</span><span class="p">);</span>
+    <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">performance</span><span class="p">,</span> <span class="nx">ticks</span><span class="p">);</span>
+<span class="p">});</span>
+
+<span class="kd">var</span> <span class="nx">ticksCache</span> <span class="o">=</span> <span class="p">{};</span>
+<span class="kd">function</span> <span class="nx">getTicksForDatestamp</span><span class="p">(</span><span class="nx">options</span><span class="p">,</span> <span class="nx">datestamp</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">cacheKey</span> <span class="o">=</span> <span class="nx">options</span><span class="p">.</span><span class="nx">symbol</span> <span class="o">+</span> <span class="s1">&#39;-&#39;</span> <span class="o">+</span> <span class="nx">datestamp</span><span class="p">;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">ticksCache</span><span class="p">[</span><span class="nx">cacheKey</span><span class="p">])</span> <span class="p">{</span>
+        <span class="kd">var</span> <span class="nx">reader</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">TickReader</span><span class="p">(</span><span class="nx">options</span><span class="p">.</span><span class="nx">tickDbPath</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="nx">options</span><span class="p">.</span><span class="nx">symbol</span> <span class="o">+</span> <span class="s2">&quot;/&quot;</span> <span class="o">+</span> <span class="nx">datestamp</span> <span class="o">+</span> <span class="s2">&quot;.ticks&quot;</span><span class="p">);</span>
+
+        <span class="nx">reader</span><span class="p">.</span><span class="nx">load</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+            <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">reader</span><span class="p">.</span><span class="nx">nextTick</span><span class="p">());</span>
+            <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">reader</span><span class="p">.</span><span class="nx">nextTick</span><span class="p">());</span>
+            <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">reader</span><span class="p">.</span><span class="nx">nextTick</span><span class="p">());</span>
+            <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="nx">reader</span><span class="p">.</span><span class="nx">nextTick</span><span class="p">());</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+                <span class="nx">ticksCache</span><span class="p">[</span><span class="nx">cacheKey</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="nx">count</span><span class="o">:</span> <span class="mi">0</span>
+                <span class="p">};</span>
+            <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+                <span class="kd">var</span> <span class="nx">buffer</span> <span class="o">=</span> <span class="nx">reader</span><span class="p">.</span><span class="nx">getBuffer</span><span class="p">();</span>
+                <span class="nx">ticksCache</span><span class="p">[</span><span class="nx">cacheKey</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="nx">count</span><span class="o">:</span> <span class="nx">reader</span><span class="p">.</span><span class="nx">length</span><span class="p">,</span>
+                    <span class="nx">buffer</span><span class="o">:</span> <span class="nx">buffer</span>
+                <span class="p">};</span>
+            <span class="p">}</span>
+            <span class="k">return</span> <span class="nx">callback</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="nx">ticksCache</span><span class="p">[</span><span class="nx">cacheKey</span><span class="p">]);</span>
+        <span class="p">});</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nx">callback</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="nx">ticksCache</span><span class="p">[</span><span class="nx">cacheKey</span><span class="p">]);</span>
+    <span class="p">}</span>
+<span class="p">}</span></div></div></div></div></body></html>

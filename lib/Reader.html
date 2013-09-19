@@ -1,0 +1,222 @@
+<!DOCTYPE html><html lang="en"><head><title>lib/Reader</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content="../"><meta name="groc-document-path" content="lib/Reader"><meta name="groc-project-path" content="lib/Reader.js"><meta name="groc-github-url" content="https://github.com/egorFiNE/node-tickstorage"><link rel="stylesheet" type="text/css" media="all" href="../assets/style.css"><script type="text/javascript" src="../assets/behavior.js"></script><body><div id="meta"><div class="file-path"><a href="https://github.com/egorFiNE/node-tickstorage/blob/master/lib/Reader.js">lib/Reader.js</a></div></div><div id="document"><div class="segment"><div class="code"><div class="wrapper"><span class="kd">var</span>
+  <span class="nx">fs</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;fs&#39;</span><span class="p">),</span>
+  <span class="nx">zlib</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;zlib&#39;</span><span class="p">),</span>
+  <span class="nx">common</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;./common&#39;</span><span class="p">),</span>
+  <span class="nx">uncompress</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;compress-buffer&#39;</span><span class="p">).</span><span class="nx">uncompress</span><span class="p">;</span></div></div></div><div class="segment"><div class="comments "><div class="wrapper"><p>Tick reader.</p>
+
+<p>Example usage:</p>
+
+<pre><code class="javascript">var Reader = require('tickstorage').Reader;
+
+reader = new Reader(path);
+
+reader.load(function(err) {
+    if (err) return console.error(err);
+
+    var tick, totalVolume = 0;
+    while(tick = reader.nextTick()) {
+        if (tick.isMarket) {
+            totalVolume += tick.volume;
+        }
+    }
+
+    console.log("Total volume: ", totalVolume);
+});
+</code></pre>
+
+<p>Besides methods, reader has following properties:</p>
+
+<ul>
+<li>length - amount of ticks in storage</li>
+</ul></div></div><div class="code"><div class="wrapper"><span class="kd">function</span> <span class="nx">Reader</span><span class="p">(</span><span class="nx">path</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">_path</span> <span class="o">=</span> <span class="nx">path</span><span class="p">;</span>
+
+  <span class="k">this</span><span class="p">.</span><span class="nx">length</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+
+  <span class="k">this</span><span class="p">.</span><span class="nx">_ticksBuffer</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">_position</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="k">this</span><span class="p">.</span><span class="nx">_loaded</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+
+  <span class="k">this</span><span class="p">.</span><span class="nx">_readTick</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span> <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s2">&quot;Ticks not loaded properly.&quot;</span><span class="p">);</span> <span class="p">};</span>
+<span class="p">}</span>
+
+<span class="nx">Reader</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">load</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">_this</span><span class="o">=</span><span class="k">this</span><span class="p">;</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">fs</span><span class="p">.</span><span class="nx">existsSync</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">_path</span><span class="p">))</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="nx">callback</span><span class="p">(</span><span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s2">&quot;File does not exists:&quot;</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">_path</span><span class="p">));</span>
+  <span class="p">}</span>
+
+  <span class="nx">fs</span><span class="p">.</span><span class="nx">open</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">fd</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">callback</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="nx">fs</span><span class="p">.</span><span class="nx">fstat</span><span class="p">(</span><span class="nx">fd</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">stats</span><span class="p">)</span> <span class="p">{</span>
+      <span class="c1">//} if fs.open succeed, then fs.stats should not fail, but, you know...</span>
+      <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nx">callback</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
+      <span class="p">}</span>
+
+      <span class="nx">_this</span><span class="p">.</span><span class="nx">_loadHeader</span><span class="p">(</span><span class="nx">fd</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">headerValues</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+          <span class="k">return</span> <span class="nx">callback</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
+        <span class="p">}</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="nx">headerValues</span><span class="p">.</span><span class="nx">version</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="p">{</span>
+          <span class="nx">_this</span><span class="p">.</span><span class="nx">_loadV1</span><span class="p">(</span><span class="nx">fd</span><span class="p">,</span> <span class="nx">stats</span><span class="p">,</span> <span class="nx">headerValues</span><span class="p">,</span> <span class="nx">callback</span><span class="p">);</span>
+        <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+          <span class="nx">_this</span><span class="p">.</span><span class="nx">_loadV2</span><span class="p">(</span><span class="nx">fd</span><span class="p">,</span> <span class="nx">stats</span><span class="p">,</span> <span class="nx">headerValues</span><span class="p">,</span> <span class="nx">callback</span><span class="p">);</span>
+        <span class="p">}</span>
+      <span class="p">});</span>
+    <span class="p">});</span>
+  <span class="p">});</span>
+<span class="p">};</span>
+
+<span class="nx">Reader</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">tickAtPosition</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">position</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">_loaded</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s2">&quot;You should call `load` before `tickAtPosition`&quot;</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="nx">position</span> <span class="o">&lt;</span> <span class="k">this</span><span class="p">.</span><span class="nx">length</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">offset</span> <span class="o">=</span> <span class="nx">position</span> <span class="o">*</span> <span class="k">this</span><span class="p">.</span><span class="nx">_tickSize</span><span class="p">;</span>
+    <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_readTick</span><span class="p">(</span><span class="nx">offset</span><span class="p">);</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="kc">null</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">};</span>
+
+<span class="nx">Reader</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">nextTick</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="k">this</span><span class="p">.</span><span class="nx">_loaded</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">throw</span> <span class="k">new</span> <span class="nb">Error</span><span class="p">(</span><span class="s2">&quot;You should call `load` before `nextTick`&quot;</span><span class="p">);</span>
+  <span class="p">}</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">_position</span> <span class="o">&lt;</span> <span class="k">this</span><span class="p">.</span><span class="nx">length</span><span class="p">)</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="nx">offset</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">_position</span> <span class="o">*</span> <span class="k">this</span><span class="p">.</span><span class="nx">_tickSize</span><span class="p">;</span>
+    <span class="kd">var</span> <span class="nx">tick</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">_readTick</span><span class="p">(</span><span class="nx">offset</span><span class="p">);</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">_position</span><span class="o">++</span><span class="p">;</span>
+    <span class="k">return</span> <span class="nx">tick</span><span class="p">;</span>
+  <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="kc">null</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">};</span></div></div></div><div class="segment"><div class="comments doc-section"><div class="wrapper"><p>Returns raw buffer of ticks.</p>
+
+<p>Method may be useful if you, for example, want to pass all ticks to native addon.</p>
+
+<p>It's plain array of tick structures, each of which has following format:</p>
+
+<ul>
+<li>4 bytes - unixtime (seconds) of tick</li>
+<li>2 bytes - milliseconds of tick unixtime</li>
+<li>4 bytes - tick volume</li>
+<li>4 bytes - deal price</li>
+<li>4 bytes - bid price</li>
+<li>4 bytes - ask price</li>
+<li>4 bytes - bid size</li>
+<li>4 bytes - ask size</li>
+<li>1 byte - flags. Currently there is only 1 flag and 2 possible values: 1 - it's market tick, 0 - it isn't market tick</li>
+</ul>
+
+<p>All multibyte numbers are little-endian.</p>
+
+<p>All prices (price, bid, ask) are multiplied by 10000 (e.g. $0.01 will be 100, $1 will be 10000).</p>
+
+<p><strong>Returns a Buffer</strong><br/>(buffer of ticks)</p></div></div><div class="code"><div class="wrapper"><span class="nx">Reader</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">getBuffer</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">_ticksBuffer</span><span class="p">;</span>
+<span class="p">};</span></div></div></div><div class="segment"><div class="code"><div class="wrapper"><span class="nx">Reader</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">_readTickV1AtOffset</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">offset</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="p">{</span>
+    <span class="nx">unixtime</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">_ticksBuffer</span><span class="p">.</span><span class="nx">readUInt32LE</span><span class="p">(</span><span class="nx">offset</span><span class="p">,</span> <span class="kc">false</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">,</span>
+    <span class="nx">volume</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">_ticksBuffer</span><span class="p">.</span><span class="nx">readUInt32LE</span><span class="p">(</span><span class="nx">offset</span> <span class="o">+</span> <span class="mi">4</span><span class="p">,</span> <span class="kc">false</span><span class="p">),</span>
+    <span class="nx">price</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">_ticksBuffer</span><span class="p">.</span><span class="nx">readUInt32LE</span><span class="p">(</span><span class="nx">offset</span> <span class="o">+</span> <span class="mi">8</span><span class="p">,</span> <span class="kc">false</span><span class="p">),</span>
+    <span class="nx">isMarket</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">_ticksBuffer</span><span class="p">.</span><span class="nx">readUInt8</span><span class="p">(</span><span class="nx">offset</span> <span class="o">+</span> <span class="mi">12</span><span class="p">,</span> <span class="kc">false</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+  <span class="p">};</span>
+<span class="p">};</span>
+
+<span class="nx">Reader</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">_readTickV2AtOffset</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">offset</span><span class="p">)</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="p">{</span>
+    <span class="nx">unixtime</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">_ticksBuffer</span><span class="p">.</span><span class="nx">readUInt32LE</span><span class="p">(</span><span class="nx">offset</span><span class="p">,</span> <span class="kc">false</span><span class="p">)</span> <span class="o">*</span> <span class="mi">1000</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">_ticksBuffer</span><span class="p">.</span><span class="nx">readUInt16LE</span><span class="p">(</span><span class="nx">offset</span> <span class="o">+</span> <span class="mi">4</span><span class="p">,</span> <span class="kc">false</span><span class="p">),</span>
+    <span class="nx">volume</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">_ticksBuffer</span><span class="p">.</span><span class="nx">readUInt32LE</span><span class="p">(</span><span class="nx">offset</span> <span class="o">+</span> <span class="mi">6</span><span class="p">,</span> <span class="kc">false</span><span class="p">),</span>
+    <span class="nx">price</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">_ticksBuffer</span><span class="p">.</span><span class="nx">readUInt32LE</span><span class="p">(</span><span class="nx">offset</span> <span class="o">+</span> <span class="mi">10</span><span class="p">,</span> <span class="kc">false</span><span class="p">),</span>
+    <span class="nx">bid</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">_ticksBuffer</span><span class="p">.</span><span class="nx">readUInt32LE</span><span class="p">(</span><span class="nx">offset</span> <span class="o">+</span> <span class="mi">14</span><span class="p">,</span> <span class="kc">false</span><span class="p">),</span>
+    <span class="nx">ask</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">_ticksBuffer</span><span class="p">.</span><span class="nx">readUInt32LE</span><span class="p">(</span><span class="nx">offset</span> <span class="o">+</span> <span class="mi">18</span><span class="p">,</span> <span class="kc">false</span><span class="p">),</span>
+    <span class="nx">bidSize</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">_ticksBuffer</span><span class="p">.</span><span class="nx">readUInt32LE</span><span class="p">(</span><span class="nx">offset</span> <span class="o">+</span> <span class="mi">22</span><span class="p">,</span> <span class="kc">false</span><span class="p">),</span>
+    <span class="nx">askSize</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">_ticksBuffer</span><span class="p">.</span><span class="nx">readUInt32LE</span><span class="p">(</span><span class="nx">offset</span> <span class="o">+</span> <span class="mi">26</span><span class="p">,</span> <span class="kc">false</span><span class="p">),</span>
+    <span class="nx">isMarket</span><span class="o">:</span> <span class="k">this</span><span class="p">.</span><span class="nx">_ticksBuffer</span><span class="p">.</span><span class="nx">readUInt8</span><span class="p">(</span><span class="nx">offset</span> <span class="o">+</span> <span class="mi">30</span><span class="p">,</span> <span class="kc">false</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+  <span class="p">};</span>
+<span class="p">};</span>
+
+<span class="nx">Reader</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">_loadV1</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">fd</span><span class="p">,</span> <span class="nx">stats</span><span class="p">,</span> <span class="nx">headerValues</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">_this</span><span class="o">=</span><span class="k">this</span><span class="p">;</span>
+
+  <span class="kd">var</span> <span class="nx">compressedBuffer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Buffer</span><span class="p">(</span><span class="nx">stats</span><span class="p">.</span><span class="nx">size</span> <span class="o">-</span> <span class="nx">common</span><span class="p">.</span><span class="nx">HEADER_SIZE</span> <span class="o">-</span> <span class="nx">headerValues</span><span class="p">.</span><span class="nx">minuteIndexSize</span><span class="p">);</span>
+
+  <span class="nx">fs</span><span class="p">.</span><span class="nx">read</span><span class="p">(</span><span class="nx">fd</span><span class="p">,</span> <span class="nx">compressedBuffer</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">compressedBuffer</span><span class="p">.</span><span class="nx">length</span><span class="p">,</span> <span class="nx">common</span><span class="p">.</span><span class="nx">HEADER_SIZE</span> <span class="o">+</span> <span class="nx">headerValues</span><span class="p">.</span><span class="nx">minuteIndexSize</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">callback</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="k">try</span> <span class="p">{</span>
+      <span class="nx">_this</span><span class="p">.</span><span class="nx">_ticksBuffer</span> <span class="o">=</span> <span class="nx">uncompress</span><span class="p">(</span><span class="nx">compressedBuffer</span><span class="p">);</span>
+    <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">callback</span><span class="p">(</span><span class="nx">e</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="nx">_this</span><span class="p">.</span><span class="nx">_tickSize</span> <span class="o">=</span> <span class="mi">13</span><span class="p">;</span>
+    <span class="nx">_this</span><span class="p">.</span><span class="nx">length</span> <span class="o">=</span> <span class="nx">_this</span><span class="p">.</span><span class="nx">_ticksBuffer</span><span class="p">.</span><span class="nx">length</span> <span class="o">/</span> <span class="nx">_this</span><span class="p">.</span><span class="nx">_tickSize</span><span class="p">;</span>
+
+    <span class="nx">_this</span><span class="p">.</span><span class="nx">_readTick</span> <span class="o">=</span> <span class="nx">_this</span><span class="p">.</span><span class="nx">_readTickV1AtOffset</span><span class="p">;</span>
+
+    <span class="nx">_this</span><span class="p">.</span><span class="nx">_loaded</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+
+    <span class="nx">callback</span><span class="p">();</span>
+  <span class="p">});</span>
+<span class="p">};</span>
+
+<span class="nx">Reader</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">_loadV2</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">fd</span><span class="p">,</span> <span class="nx">stats</span><span class="p">,</span> <span class="nx">headerValues</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">_this</span><span class="o">=</span><span class="k">this</span><span class="p">;</span>
+
+  <span class="kd">var</span> <span class="nx">compressedBuffer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Buffer</span><span class="p">(</span><span class="nx">stats</span><span class="p">.</span><span class="nx">size</span> <span class="o">-</span> <span class="nx">common</span><span class="p">.</span><span class="nx">HEADER_SIZE</span><span class="p">);</span>
+
+  <span class="nx">fs</span><span class="p">.</span><span class="nx">read</span><span class="p">(</span><span class="nx">fd</span><span class="p">,</span> <span class="nx">compressedBuffer</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">compressedBuffer</span><span class="p">.</span><span class="nx">length</span><span class="p">,</span> <span class="nx">common</span><span class="p">.</span><span class="nx">HEADER_SIZE</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">callback</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="nx">zlib</span><span class="p">.</span><span class="nx">inflate</span><span class="p">(</span><span class="nx">compressedBuffer</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">err</span><span class="p">,</span> <span class="nx">_ticksBuffer</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="nx">callback</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
+      <span class="p">}</span>
+
+      <span class="nx">_this</span><span class="p">.</span><span class="nx">_ticksBuffer</span> <span class="o">=</span> <span class="nx">_ticksBuffer</span><span class="p">;</span>
+      <span class="nx">_this</span><span class="p">.</span><span class="nx">_tickSize</span> <span class="o">=</span> <span class="mi">31</span><span class="p">;</span>
+      <span class="nx">_this</span><span class="p">.</span><span class="nx">length</span> <span class="o">=</span> <span class="nx">_this</span><span class="p">.</span><span class="nx">_ticksBuffer</span><span class="p">.</span><span class="nx">length</span> <span class="o">/</span> <span class="nx">_this</span><span class="p">.</span><span class="nx">_tickSize</span><span class="p">;</span>
+
+      <span class="nx">_this</span><span class="p">.</span><span class="nx">_readTick</span> <span class="o">=</span> <span class="nx">_this</span><span class="p">.</span><span class="nx">_readTickV2AtOffset</span><span class="p">;</span>
+
+      <span class="nx">_this</span><span class="p">.</span><span class="nx">_loaded</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+
+      <span class="nx">callback</span><span class="p">();</span>
+    <span class="p">});</span>
+  <span class="p">});</span>
+<span class="p">};</span>
+
+<span class="nx">Reader</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">_loadHeader</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">fd</span><span class="p">,</span> <span class="nx">callback</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="nx">headerBuffer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Buffer</span><span class="p">(</span><span class="nx">common</span><span class="p">.</span><span class="nx">HEADER_SIZE</span><span class="p">);</span>
+
+  <span class="nx">fs</span><span class="p">.</span><span class="nx">read</span><span class="p">(</span><span class="nx">fd</span><span class="p">,</span> <span class="nx">headerBuffer</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">common</span><span class="p">.</span><span class="nx">HEADER_SIZE</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="kd">function</span><span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nx">err</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">callback</span><span class="p">(</span><span class="nx">err</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="kd">var</span> <span class="nx">headerString</span> <span class="o">=</span> <span class="nx">headerBuffer</span><span class="p">.</span><span class="nx">toString</span><span class="p">().</span><span class="nx">split</span><span class="p">(</span><span class="s2">&quot;\n&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">];</span>
+    <span class="kd">var</span> <span class="nx">json</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
+    <span class="k">try</span> <span class="p">{</span>
+      <span class="nx">json</span> <span class="o">=</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">headerString</span><span class="p">);</span>
+    <span class="p">}</span> <span class="k">catch</span><span class="p">(</span><span class="nx">e</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="nx">callback</span><span class="p">(</span><span class="nx">e</span><span class="p">);</span>
+    <span class="p">}</span>
+
+    <span class="nx">callback</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="nx">json</span><span class="p">);</span>
+  <span class="p">});</span>
+<span class="p">};</span>
+
+<span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="nx">Reader</span><span class="p">;</span></div></div></div></div></body></html>
