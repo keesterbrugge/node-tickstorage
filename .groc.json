@@ -4,6 +4,8 @@
   "except": [
   	"node_modules/**/README.md",
   	"node_modules/**/*.js",
+  	"doc/**/*.js",
   	"test/**"
-  ]
+  ],
+  "index": "index.js"
 }
