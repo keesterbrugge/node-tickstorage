@@ -25,16 +25,53 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
           "type": "heading",
           "data": {
             "level": 1,
-            "title": "node-tickstorage",
-            "slug": "node-tickstorage",
+            "title": "Market tick storage for Node.js",
+            "slug": "market-tick-storage-for-nodejs",
             "isFileHeader": true
           },
-          "depth": 1
+          "depth": 1,
+          "children": [
+            {
+              "type": "heading",
+              "data": {
+                "level": 2,
+                "title": "Writing ticks",
+                "slug": "writing-ticks"
+              },
+              "depth": 2
+            }, {
+              "type": "heading",
+              "data": {
+                "level": 2,
+                "title": "Reading ticks",
+                "slug": "reading-ticks"
+              },
+              "depth": 2
+            }
+          ]
         },
-        "title": "node-tickstorage"
+        "title": "Market tick storage for Node.js"
       },
       "depth": 1,
-      "outline": []
+      "outline": [
+        {
+          "type": "heading",
+          "data": {
+            "level": 2,
+            "title": "Writing ticks",
+            "slug": "writing-ticks"
+          },
+          "depth": 2
+        }, {
+          "type": "heading",
+          "data": {
+            "level": 2,
+            "title": "Reading ticks",
+            "slug": "reading-ticks"
+          },
+          "depth": 2
+        }
+      ]
     }, {
       "type": "file",
       "data": {
@@ -45,9 +82,19 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
         },
         "sourcePath": "/Users/daeq/workspace/node-tickstorage/README.md",
         "projectPath": "README.md",
-        "targetPath": "index",
-        "pageTitle": "index",
-        "title": "index"
+        "targetPath": "README",
+        "pageTitle": "README",
+        "firstHeader": {
+          "type": "heading",
+          "data": {
+            "level": 1,
+            "title": "node-tickstorage",
+            "slug": "node-tickstorage",
+            "isFileHeader": true
+          },
+          "depth": 1
+        },
+        "title": "node-tickstorage"
       },
       "depth": 1,
       "outline": []
@@ -75,7 +122,17 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
             "projectPath": "lib/Reader.js",
             "targetPath": "lib/Reader",
             "pageTitle": "lib/Reader",
-            "title": "Reader"
+            "firstHeader": {
+              "type": "heading",
+              "data": {
+                "level": 1,
+                "title": "Tick database reader",
+                "slug": "tick-database-reader",
+                "isFileHeader": true
+              },
+              "depth": 1
+            },
+            "title": "Tick database reader"
           },
           "depth": 2,
           "outline": []
@@ -95,7 +152,17 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
             "projectPath": "lib/Writer.js",
             "targetPath": "lib/Writer",
             "pageTitle": "lib/Writer",
-            "title": "Writer"
+            "firstHeader": {
+              "type": "heading",
+              "data": {
+                "level": 1,
+                "title": "Tick storage writer",
+                "slug": "tick-storage-writer",
+                "isFileHeader": true
+              },
+              "depth": 1
+            },
+            "title": "Tick storage writer"
           },
           "depth": 2,
           "outline": []
@@ -121,26 +188,6 @@ f.event={add:function(a,c,d,e,g){var h,i,j,k,l,m,n,o,p,q,r,s;if(!(a.nodeType===3
           "outline": []
         }
       ]
-    }, {
-      "type": "file",
-      "data": {
-        "language": {
-          "nameMatchers": [".js"],
-          "pygmentsLexer": "javascript",
-          "singleLineComment": ["//"],
-          "multiLineComment": ["/*", "*", "*/"],
-          "ignorePrefix": "}",
-          "foldPrefix": "^",
-          "name": "JavaScript"
-        },
-        "sourcePath": "/Users/daeq/workspace/node-tickstorage/test.js",
-        "projectPath": "test.js",
-        "targetPath": "test",
-        "pageTitle": "test",
-        "title": "test"
-      },
-      "depth": 1,
-      "outline": []
     }
   ];
 

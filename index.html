@@ -1,3 +1,66 @@
-<!DOCTYPE html><html lang="en"><head><title>index</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content=""><meta name="groc-document-path" content="index"><meta name="groc-project-path" content="README.md"><meta name="groc-github-url" content="https://github.com/egorFiNE/node-tickstorage"><link rel="stylesheet" type="text/css" media="all" href="assets/style.css"><script type="text/javascript" src="assets/behavior.js"></script><body><div id="meta"><div class="file-path"><a href="https://github.com/egorFiNE/node-tickstorage/blob/master/README.md">README.md</a></div></div><div id="document"><div class="segment"><div class="comments "><div class="wrapper"><h1 id="node-tickstorage">node-tickstorage</h1>
+<!DOCTYPE html><html lang="en"><head><title>index</title></head><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"><meta name="groc-relative-root" content=""><meta name="groc-document-path" content="index"><meta name="groc-project-path" content="index.js"><meta name="groc-github-url" content="https://github.com/egorFiNE/node-tickstorage"><link rel="stylesheet" type="text/css" media="all" href="assets/style.css"><script type="text/javascript" src="assets/behavior.js"></script><body><div id="meta"><div class="file-path"><a href="https://github.com/egorFiNE/node-tickstorage/blob/master/index.js">index.js</a></div></div><div id="document"><div class="segment"><div class="comments "><div class="wrapper"><h1 id="market-tick-storage-for-nodejs">Market tick storage for Node.js</h1>
 
-<p>An extremely fast and efficient Node.js storage engine for raw stock market tick data.</p></div></div></div></div></body></html>
+<p>Stores and reads market ticks data in very condensed format and does it very fast.</p>
+
+<h2 id="writing-ticks">Writing ticks</h2>
+
+<p>Example usage:</p>
+
+<pre><code class="javascript">var Writer = require('tickstorage').Writer;
+
+writer = new Writer("/tmp/test.ticks");
+
+writer.addTick({
+    unixtime: Date.now(),
+    volume: 100,
+    price: 50000,
+    bid: 50100,
+    ask: 49900,
+    bidSize: 100000,
+    askSize: 100000,
+    isMarket: true
+});
+
+writer.save(fucntion(err) {
+    if (err) return console.log(err);
+
+    console.log("Ticks saved successfully");
+});
+</code></pre>
+
+<p>See <a href="lib/Writer.html">Writer documentation</a> for implementation details.</p>
+
+<h2 id="reading-ticks">Reading ticks</h2>
+
+<p>Example usage:</p>
+
+<pre><code class="javascript">var Reader = require('tickstorage').Reader;
+
+reader = new Reader("/tmp/test.ticks");
+
+reader.load(function(err) {
+    if (err) return console.error(err);
+
+    console.log("Ticks count: ", reader.length);
+
+    var tick, totalVolume = 0;
+    while(tick = reader.nextTick()) {
+        if (tick.isMarket) {
+            totalVolume += tick.volume;
+        }
+    }
+
+    console.log("Total volume: ", totalVolume);
+});
+</code></pre>
+
+<p>Reader supports tick files created by <a href="http://github.com/egorFiNE/node-stock">stock module</a>.</p>
+
+<p>See <a href="lib/Reader.html">Reader documentation</a> for implementation details.</p></div></div><div class="code"><div class="wrapper"><span class="kd">var</span>
+  <span class="nx">Reader</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;./lib/Reader&#39;</span><span class="p">),</span>
+  <span class="nx">Writer</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;./lib/Writer&#39;</span><span class="p">);</span>
+
+<span class="nx">module</span><span class="p">.</span><span class="nx">exports</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="nx">Reader</span><span class="o">:</span> <span class="nx">Reader</span><span class="p">,</span>
+  <span class="nx">Writer</span><span class="o">:</span> <span class="nx">Writer</span>
+<span class="p">};</span></div></div></div></div></body></html>
