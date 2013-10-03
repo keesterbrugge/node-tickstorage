@@ -1,6 +1,6 @@
 {
 	"name": "tickstorage",
-	"version": "0.0.1",
+	"version": "0.0.2",
 	"description": "An extremely fast and efficient Node.js storage engine for raw stock market tick data.",
 	"main": "index.js",
 	"directories": {

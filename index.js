@@ -33,7 +33,6 @@ writer.save(fucntion(err) {
 
 See [Writer documentation](lib/Writer.html) for implementation details.
 
-
 Reading ticks
 ----------
 Example usage:

@@ -114,6 +114,50 @@ describe("TickStorage/Reader", function() {
 		});
 	});
 
+	it("should read from readable stream", function(done) {
+		var path = __dirname + '/data/ticks/LVS/20110104.ticks';
+		var stream = require('fs').createReadStream(path);
+		var reader = new Reader(stream);
+		reader.load(function(err) {
+			assert.ok(!err, err);
+
+			assert.deepEqual(reader.nextTick(), {
+				"unixtime": 1294134747000,
+				"volume": 100,
+				"price": 465000,
+				"bid": 101,
+				"ask": 109,
+				"bidSize": 89,
+				"askSize": 109,
+				"isMarket": false
+			});
+
+			assert.deepEqual(reader.nextTick(), {
+				"unixtime": 1294143456000,
+				"volume": 100,
+				"price": 458300,
+				"bid": 101,
+				"ask": 54,
+				"bidSize": 68,
+				"askSize": 37,
+				"isMarket": false
+			});
+
+			assert.deepEqual(reader.nextTick(), {
+				"unixtime": 1294143481000,
+				"volume": 100,
+				"price": 458300,
+				"bid": 94,
+				"ask": 30,
+				"bidSize": 78,
+				"askSize": 21,
+				"isMarket": false
+			});
+
+			done();
+		});
+	});
+
 	it("should read ticks at random positions correctly", function(done) {
 		var path = __dirname + '/data/ticks/LVS/20110104.ticks';
 		var reader = new Reader(path);

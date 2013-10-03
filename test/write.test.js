@@ -89,6 +89,54 @@ describe("TickStorage/Writer", function() {
 		});
 	});
 
+	it("should write to stream", function(done) {
+		var stream = new require('stream').PassThrough();
+		var writer = new Writer(stream);
+		var ticks = [
+			{
+				unixtime: unixtimeMsec() + 123,
+				volume: 100,
+				price: 14134,
+				bid: 14145,
+				ask: 14245,
+				bidSize: 35200,
+				askSize: 1000,
+				isMarket: true
+			},
+			{
+				unixtime: unixtimeMsec() + 234,
+				volume: 100,
+				price: 14134,
+				bid: 123,
+				ask: 124,
+				bidSize: 125,
+				askSize: 126,
+				isMarket: false,
+			},
+			{
+				unixtime: unixtimeMsec() + 345,
+				volume: 99,
+				price: 1,
+				bid: 123,
+				ask: 124,
+				bidSize: 125,
+				askSize: 126,
+				isMarket: false
+			}
+		];
+		ticks.forEach(function(tick) {
+			writer.addTick(tick);
+		});
+		writer.save(function(err) {
+			assert.ok(!err, err);
+			readAllTicks(stream, function(err, readTicks) {
+				assert.ok(!err, err);
+				assert.deepEqual(ticks, readTicks);
+				done();
+			});
+		});
+	});
+
 	it("should support large datasets", function(done) {
 		this.timeout(5000); // Tried it on a really slow machine
 		var path = __dirname + '/data/tmp/largeDataSet.ticks';
@@ -149,8 +197,8 @@ describe("TickStorage/Writer", function() {
 		});
 	});
 
-	function readAllTicks(path, callback) {
-		var reader = new Reader(path);
+	function readAllTicks(input, callback) {
+		var reader = new Reader(input);
 		reader.load(function(err) {
 			var ticks = [];
 			var tick;
